@@ -1,0 +1,9 @@
+# NetBeans / Ant
+build/
+dist/
+nbproject/private/
+
+# Zugangsdaten und Protokolle der Datenbank (ab Phase 11)
+db/db.properties
+db/bestand.txt
+db/einrichtung.txt
