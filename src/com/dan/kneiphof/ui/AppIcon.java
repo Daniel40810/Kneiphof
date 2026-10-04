@@ -187,10 +187,12 @@ public final class AppIcon {
         g.fill(new Rectangle2D.Double(0, horizon - (small ? 3 : 2), 256, small ? 6 : 4));
 
         g.setClip(null);
-        // Rand
-        g.setStroke(new BasicStroke(small ? 10f : 5f));
-        g.setColor(new Color(255, 255, 255, small ? 40 : 46));
-        g.draw(new RoundRectangle2D.Double(8.5, 8.5, 239, 239, small ? 60 : 50, small ? 60 : 50));
+        // Goldkante als Rahmen, wie beim Heidelberg-Symbol (ab 48 Pixel; darunter würde sie das Bild verschlucken)
+        if (!small) {
+            g.setColor(new Color(236, 192, 100));
+            g.setStroke(new BasicStroke(5f));
+            g.draw(new RoundRectangle2D.Double(8.5, 8.5, 239, 239, 55, 55));
+        }
         g.dispose();
         return img;
     }
