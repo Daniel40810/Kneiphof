@@ -84,6 +84,14 @@ Fünf Kamerafahrten führen die Kamera selbst, mit Kinobalken und Blenden. „Ei
 
 Die vier großen Bauten sind keine Würfel mehr: das **Rathaus** mit Mittelrisalit, Gauben und Turm, das **Gymnasium** mit zwei Schaugiebeln und Dachreiter, die **Albertina** mit zwei Ecktürmen und Giebelportal, die **Börse** mit Säulenhalle und Kuppel. Ihre Gestalt ist eine begründete Annahme aus Bautyp und Zeit, kein Aufmaß. Die Kamera hebt sich über Dächer, statt durch sie zu fahren.
 
+## Grüne Brücke nach Fotos um 1910
+
+![Grüne Brücke: Portalbögen und Kandelaber auf den Klappenpfeilern](docs/bilder/p13_gruene_portal.jpg)
+![Grüne Brücke vom Wasser aus](docs/bilder/p13_gruene_wasser.jpg)
+![Grüne Brücke mit geöffneten Klappen](docs/bilder/p13_gruene_offen.jpg)
+
+Die Grüne Brücke ist als einzige der sieben Brücken nach Fotos gebaut (Vorlage: [`GrueneBruecke.jpg`](GrueneBruecke.jpg), Postkarte um 1910, und `GrüneBrücke.webp`). Sie ist eine eiserne Doppelklappbrücke auf gemauerten Strompfeilern mit Eisbrechern statt einer Holzjochbrücke. Auf der Fahrbahn liegen Pflaster und zwei Straßenbahngleise in Meterspur, und das Ziergeländer aus Gusseisen hat Ringe. Auf jedem Klappenpfeiler stehen zwei Kandelaber auf runden Steinsockeln mit vier Armen und Spitzenlaterne. Über die Fahrbahn verbindet sie ein schmiedeeiserner Portalbogen mit Strahlenfächer, Voluten und Wappenschild. Maße und Ornament sind aus den Fotos geschätzt, nicht gemessen.
+
 ## Bedienung
 
 | Eingabe | Wirkung |
