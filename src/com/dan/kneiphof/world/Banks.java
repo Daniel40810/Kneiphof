@@ -32,6 +32,8 @@ public final class Banks {
     /** Unterkante der Mauer (unter dem Flussbett an der Mauer). */
     static final double WALL_FOOT = -2.6;
     private static final double SINK = Site.QUAY_SINK;
+    /** Tiefe des Decksteins auf der Kaimauer; dahinter beginnt das Kaipflaster. */
+    static final double COPING = 0.62;
 
     public final List<Line> lines = new ArrayList<>();
     /** Punkte für Bäume, Laternen usw. auf dem Kai: x, z, Richtung zum Land nx, nz. */
@@ -39,6 +41,40 @@ public final class Banks {
 
     public Banks() {
         trace();
+    }
+
+    private static Banks shared;
+    private Map<Long, List<double[]>> pointGrid;
+    private static final double GRID = 8;
+
+    /** Die Uferzüge, einmal berechnet, für Abfragen anderer Bauteile (sie hängen nur von Site ab). */
+    static synchronized Banks shared() {
+        if (shared == null) shared = new Banks();
+        return shared;
+    }
+
+    /**
+     * Anteil der Kaimauer (0..1) an den Uferpunkten bis r Meter um (x, z), nach Abstand gewichtet (Dreieck), also
+     * stetig in der Lage. Dort, wo eine Mauer gezeichnet ist, ist er 1, am Wiesenufer 0. Ohne Uferpunkt im Umkreis 1.
+     */
+    synchronized double quayShare(double x, double z, double r) {
+        if (pointGrid == null) {
+            pointGrid = new HashMap<>();
+            for (Line L : lines)
+                for (int k = 0; k < L.size(); k++)
+                    pointGrid.computeIfAbsent(key((int) Math.floor(L.x[k] / GRID), (int) Math.floor(L.z[k] / GRID), 0), q -> new ArrayList<>())
+                            .add(new double[]{L.x[k], L.z[k], L.quay ? 1 : 0});
+        }
+        double sum = 0, wsum = 0;
+        int n = (int) Math.ceil(r / GRID);
+        int ci = (int) Math.floor(x / GRID), cj = (int) Math.floor(z / GRID);
+        for (int i = ci - n; i <= ci + n; i++)
+            for (int j = cj - n; j <= cj + n; j++)
+                for (double[] p : pointGrid.getOrDefault(key(i, j, 0), List.of())) {
+                    double w = 1 - Math.hypot(p[0] - x, p[1] - z) / r;
+                    if (w > 0) { sum += w * p[2]; wsum += w; }
+                }
+        return wsum > 0 ? sum / wsum : 1;
     }
 
     // ------------------------------------------------------------------ Uferlinie
@@ -171,6 +207,8 @@ public final class Banks {
             int n = L.size();
             double nextBollard = 9, nextLamp = 18, nextPile = 3;
             boolean bollwerk = false;
+            wingWall(m, L, 0);
+            wingWall(m, L, n - 1);
             for (int k = 0; k + 1 < n; k++) {
                 double x0 = L.x[k], z0 = L.z[k], x1 = L.x[k + 1], z1 = L.z[k + 1];
                 double nx0 = L.nx[k], nz0 = L.nz[k], nx1 = L.nx[k + 1], nz1 = L.nz[k + 1];
@@ -180,7 +218,7 @@ public final class Banks {
                 double[] fa = {x0, WALL_FOOT, z0}, fb = {x1, WALL_FOOT, z1}, ta = {x0, h0, z0}, tb = {x1, h1, z1};
                 facing(m, fa, fb, tb, ta, -(nx0 + nx1) / 2, -(nz0 + nz1) / 2, Material.QUAY, s0, WALL_FOOT, 1, 1);
                 // Deckstein: 12 cm Überstand, 14 cm hoch, 60 cm tief
-                double c = 0.14, o = 0.12, dep = 0.62;
+                double c = 0.14, o = 0.12, dep = COPING;
                 double[] ca = {x0 - nx0 * o, h0, z0 - nz0 * o}, cb = {x1 - nx1 * o, h1, z1 - nz1 * o};
                 double[] cat = {ca[0], h0 + c, ca[2]}, cbt = {cb[0], h1 + c, cb[2]};
                 double[] ia = {x0 + nx0 * dep, h0 + c, z0 + nz0 * dep}, ib = {x1 + nx1 * dep, h1 + c, z1 + nz1 * dep};
@@ -223,6 +261,32 @@ public final class Banks {
             }
         }
         return m;
+    }
+
+    /**
+     * Wangenmauer am Ende k eines Kaizuges: Die Kaimauer endet nicht offen, sondern biegt quer zum Ufer ins Land ab,
+     * von der Kaikante bis zur Außenkante des Kaipflasters und hinunter bis unter das Gelände. Sonst hinge das Ende
+     * des Pflasters über der Böschung des anschließenden Wiesenufers.
+     */
+    private static void wingWall(MeshBuilder m, Line L, int k) {
+        int j = k == 0 ? 1 : k - 1;
+        double tx = L.x[k] - L.x[j], tz = L.z[k] - L.z[j], tl = Math.hypot(tx, tz);
+        if (tl < 1e-6) return;
+        tx /= tl; tz /= tl;                                              // vom Zug weg, nach außen
+        double x = L.x[k], z = L.z[k], nx = L.nx[k], nz = L.nz[k];
+        double h = quayTop(x, z, nx, nz), far = SINK + TerrainMesh.cellDiagonal(x, z) + 0.6;
+        double ex = x + nx * far, ez = z + nz * far;
+        double[][] top = {{x - nx * 0.12, h + 0.14, z - nz * 0.12}, {x + nx * COPING, h + 0.14, z + nz * COPING},
+                {x + nx * COPING, h + 0.02, z + nz * COPING}, {ex, Site.height(ex, ez) + 0.03, ez}};
+        for (int i = 0; i + 1 < top.length; i++) {
+            double[] a = top[i], b = top[i + 1];
+            double ya = Math.min(WALL_FOOT, a[1] - 1), yb = i == top.length - 2 ? Site.height(ex, ez) - 0.6 : Math.min(WALL_FOOT, b[1] - 1);
+            facing(m, new double[]{a[0], ya, a[2]}, new double[]{b[0], yb, b[2]}, b, a, tx, tz, i < 2 ? Material.GRANITE : Material.QUAY, 0, ya, 0.8, 1);
+        }
+        // Deckel des Decksteins am Ende
+        facing(m, new double[]{x - nx * 0.12, h + 0.14, z - nz * 0.12}, new double[]{x + nx * COPING, h + 0.14, z + nz * COPING},
+                new double[]{x + nx * COPING + tx * 0.3, h + 0.14, z + nz * COPING + tz * 0.3}, new double[]{x - nx * 0.12 + tx * 0.3, h + 0.14, z - nz * 0.12 + tz * 0.3},
+                0, 0, Material.GRANITE, 0, 0, 1, 1, true);
     }
 
     /** Liegen alle Ecken auf demselben Brückenvorplatz? */

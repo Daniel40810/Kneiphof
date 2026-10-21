@@ -38,6 +38,12 @@ public final class FrameDump {
         double ex = b.wx(s + (e == 0 ? -1 : 1), 0) - b.wx(s, 0), ez = b.wz(s + (e == 0 ? -1 : 1), 0) - b.wz(s, 0);
         return new double[]{b.wx(s, 0), Math.max(y, b.deck * 0.5) + 1.0, b.wz(s, 0), Math.toDegrees(Math.atan2(ex, ez))};
     }
+    /** Punkt am Ufer e der Brücke i: u Meter landwärts, w quer zur Achse. */
+    static double[] BW(int i, int e, double u, double w) {
+        com.dan.kneiphof.world.Bridges.Bridge b = BRIDGES.list.get(i);
+        double s = e == 0 ? b.sMin - u : b.sMax + u;
+        return new double[]{b.wx(s, w), b.deck, b.wz(s, w)};
+    }
     static final com.dan.kneiphof.world.Bridges BRIDGES = new com.dan.kneiphof.world.Bridges();
     static final com.dan.kneiphof.world.Boats BOATS = new com.dan.kneiphof.world.Boats();
     /** Schiff i: Lage x, z und eine Blickrichtung (Gier) von der Seite und leicht von hinten. */
@@ -214,6 +220,9 @@ public final class FrameDump {
                 {"kai_loch_gruene", 172, 15.0, BE(3, 1, 10)[0], BE(3, 1, 10)[1], BE(3, 1, 10)[2], BE(3, 1, 10)[3] - 70.0, 25.0, 30.0},
                 {"kai_loch_hohe", 172, 15.0, BE(6, 0, 8)[0], BE(6, 0, 8)[1], BE(6, 0, 8)[2], BE(6, 0, 8)[3], 35.0, 40.0},
                 {"kai_loch_hohe_b", 172, 15.0, BE(6, 1, 8)[0], BE(6, 1, 8)[1], BE(6, 1, 8)[2], BE(6, 1, 8)[3], 35.0, 40.0},
+                {"kai_rand_hohe", 172, 15.0, BE(6, 1, 1)[0], BE(6, 1, 1)[1], BE(6, 1, 1)[2], BE(6, 1, 1)[3] - 60.0, 22.0, 14.0},
+                {"kai_rand_gruene", 172, 15.0, BE(3, 0, 1)[0], BE(3, 0, 1)[1], BE(3, 0, 1)[2], BE(3, 0, 1)[3] + 60.0, 22.0, 14.0},
+                {"kai_ecke_hohe", 172, 15.0, BW(6, 1, 1.5, -12)[0], BW(6, 1, 1.5, -12)[1], BW(6, 1, 1.5, -12)[2], BE(6, 1, 1)[3] + 100.0, 25.0, 12.0},
                 {"kai_loch_hohe_c", 172, 15.0, BE(6, 1, 6)[0], BE(6, 1, 6)[1], BE(6, 1, 6)[2], BE(6, 1, 6)[3] + 40.0, 14.0, 24.0},
                 {"br_koettel", 172, 15.0, BR(4)[0], BR(4)[1], BR(4)[2], BR(4)[3], 14.0, 70.0},
                 {"br_honig", 172, 15.0, BR(5)[0], BR(5)[1], BR(5)[2], BR(5)[3], 14.0, 55.0},
