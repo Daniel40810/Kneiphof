@@ -29,6 +29,15 @@ public final class FrameDump {
         // Blick schräg über die Brücke: Ziel ist die Mitte, Kamera von der Seite
         return new double[]{b.cx, b.deck + 1.0, b.cz, (180.0 - Math.toDegrees(b.angle) + 720.0) % 360.0};
     }
+    /** Auffahrt der Brücke i am Ufer e (0 oder 1): Ziel u Meter landwärts der Uferlinie, Blick längs der Achse zur Mitte. */
+    static double[] BE(int i, int e, double u) {
+        com.dan.kneiphof.world.Bridges.Bridge b = BRIDGES.list.get(i);
+        double s = e == 0 ? b.sMin - u : b.sMax + u;
+        double y = com.dan.kneiphof.world.Site.height(b.wx(s, 0), b.wz(s, 0));
+        // Kamera steht weiter landwärts: Blickrichtung von außen zur Mitte
+        double ex = b.wx(s + (e == 0 ? -1 : 1), 0) - b.wx(s, 0), ez = b.wz(s + (e == 0 ? -1 : 1), 0) - b.wz(s, 0);
+        return new double[]{b.wx(s, 0), Math.max(y, b.deck * 0.5) + 1.0, b.wz(s, 0), Math.toDegrees(Math.atan2(ex, ez))};
+    }
     static final com.dan.kneiphof.world.Bridges BRIDGES = new com.dan.kneiphof.world.Bridges();
     static final com.dan.kneiphof.world.Boats BOATS = new com.dan.kneiphof.world.Boats();
     /** Schiff i: Lage x, z und eine Blickrichtung (Gier) von der Seite und leicht von hinten. */
@@ -191,6 +200,17 @@ public final class FrameDump {
                 {"br_gruene_portal", 172, 15.0, BR(3)[0], BR(3)[1] + 4.0, BR(3)[2], BR(3)[3] + 55.0, 10.0, 34.0},
                 {"br_gruene_wasser", 172, 15.0, BR(3)[0], 2.0, BR(3)[2], BR(3)[3] + 15.0, 2.0, 55.0},
                 {"br_gruene_offen", 172, 15.0, BR(3)[0], BR(3)[1] + 3.0, BR(3)[2], BR(3)[3] - 30.0, 12.0, 45.0},
+                {"br_gruene_auffahrt_a", 172, 15.0, BE(3, 0, 6)[0], BE(3, 0, 6)[1], BE(3, 0, 6)[2], BE(3, 0, 6)[3] + 25.0, 8.0, 30.0},
+                {"br_gruene_auffahrt_b", 172, 15.0, BE(3, 1, 6)[0], BE(3, 1, 6)[1], BE(3, 1, 6)[2], BE(3, 1, 6)[3] - 25.0, 8.0, 30.0},
+                {"br_kraemer_nah", 172, 14.0, BR(0)[0], BR(0)[1] + 3.0, BR(0)[2], BR(0)[3] + 40.0, 12.0, 32.0},
+                {"br_schmiede_nah", 172, 15.0, BR(1)[0], BR(1)[1] + 1.0, BR(1)[2], BR(1)[3] + 35.0, 6.0, 26.0},
+                {"br_holz_nah", 172, 15.0, BR(2)[0], BR(2)[1] + 3.0, BR(2)[2], BR(2)[3] - 35.0, 8.0, 34.0},
+                {"br_koettel_nah", 172, 15.0, BR(4)[0], BR(4)[1] + 1.0, BR(4)[2], BR(4)[3] + 40.0, 10.0, 30.0},
+                {"br_honig_nah", 172, 15.0, BR(5)[0], BR(5)[1] + 1.0, BR(5)[2], BR(5)[3] - 30.0, 10.0, 26.0},
+                {"br_hohe_nah", 172, 15.0, BR(6)[0], BR(6)[1] + 2.0, BR(6)[2], BR(6)[3] + 30.0, 8.0, 42.0},
+                {"br_kraemer_offen", 172, 14.0, BR(0)[0], BR(0)[1] + 3.0, BR(0)[2], BR(0)[3] + 70.0, 6.0, 40.0},
+                {"br_koettel_auffahrt", 172, 15.0, BE(4, 1, 4)[0], BE(4, 1, 4)[1], BE(4, 1, 4)[2], BE(4, 1, 4)[3] - 30.0, 8.0, 26.0},
+                {"br_schmiede_auffahrt", 172, 15.0, BE(1, 0, 4)[0], BE(1, 0, 4)[1], BE(1, 0, 4)[2], BE(1, 0, 4)[3] + 30.0, 8.0, 24.0},
                 {"br_koettel", 172, 15.0, BR(4)[0], BR(4)[1], BR(4)[2], BR(4)[3], 14.0, 70.0},
                 {"br_honig", 172, 15.0, BR(5)[0], BR(5)[1], BR(5)[2], BR(5)[3], 14.0, 55.0},
                 {"br_hohe", 172, 15.0, BR(6)[0], BR(6)[1], BR(6)[2], BR(6)[3], 14.0, 80.0},

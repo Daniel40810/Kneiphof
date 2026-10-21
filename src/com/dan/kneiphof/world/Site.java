@@ -126,7 +126,9 @@ public final class Site {
     /** Geländehöhe über dem Wasserspiegel. */
     public static double height(double x, double z) {
         double w = Math.min(water(x, z), haff(x, z));
-        boolean quay = w > -8 && w < 8 && isQuay(x, z);
+        // Hinter der Kaimauer bleibt das Pflaster eben bis dorthin, wo auch das Wiesenufer die Landhöhe erreicht
+        // (30 m); sonst sackte es ab 8 m in eine Mulde, in der die Brückenauffahrten mit einer Stufe endeten.
+        boolean quay = w > -8 && w < 30 && isQuay(x, z);
         if (w < 0) {
             // Flussbett: an der Kaimauer sofort 2 m tief, am flachen Ufer langsam; in der Mitte bis 6 m
             return quay ? -2.0 - Math.min(4.0, -w * 0.2) : -0.3 - Math.min(5.7, -w * 0.18);

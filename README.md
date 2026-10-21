@@ -23,7 +23,8 @@ Die Bilder unten stammen aus den Prüfläufen der Shader (Mesa-Software-Renderer
 | 9 | Leben: Schiffe fahren durch die Brücken, Fußgänger | fertig |
 | 10 | Zugaben: Wetter (Regen, Nässe, Regenbogen), Möwen, Foto | fertig |
 | 11 | Oberfläche und Datenbank: Startbild, Zustand, Ansichten, Protokoll, Einrichter | fertig |
-| **12** | **Schliff: Kameraschutz über Dächern, Rathaus, Gymnasium, Albertina und Börse ausgearbeitet, W A S D, Verknüpfung** | **geliefert** (teilweise) |
+| 12 | Schliff: Kameraschutz über Dächern, Rathaus, Gymnasium, Albertina und Börse ausgearbeitet, W A S D, Verknüpfung | geliefert (teilweise) |
+| **13** | **Die sieben Brücken nach Fotos um 1910, Auffahrten ohne Stufe** | **geliefert** |
 
 Offen: Gewölbearten im Dom und Brückenmaße (beides braucht belegte Maße), Euler-Spaziergang, Eisgang, Klang.
 
@@ -84,13 +85,49 @@ Fünf Kamerafahrten führen die Kamera selbst, mit Kinobalken und Blenden. „Ei
 
 Die vier großen Bauten sind keine Würfel mehr: das **Rathaus** mit Mittelrisalit, Gauben und Turm, das **Gymnasium** mit zwei Schaugiebeln und Dachreiter, die **Albertina** mit zwei Ecktürmen und Giebelportal, die **Börse** mit Säulenhalle und Kuppel. Ihre Gestalt ist eine begründete Annahme aus Bautyp und Zeit, kein Aufmaß. Die Kamera hebt sich über Dächer, statt durch sie zu fahren.
 
-## Grüne Brücke nach Fotos um 1910
+## Die sieben Brücken nach Fotos um 1910
+
+Vorlage sind die Postkarten und Fotos im Ordner [`templates/`](templates/). Sie zeigen um 1910 an allen sieben Stellen eiserne Doppelklappbrücken auf gemauerten Strompfeilern, keine Holzjochbrücken. Die Szene baut sie jetzt so, aber jede Brücke mit eigenen Merkmalen. Maße und Ornament sind aus den Fotos geschätzt, nicht gemessen.
+
+![Krämerbrücke mit Fahrdrahtjochen und großen Kandelabern](docs/bilder/p14_kraemer.jpg)
+![Krämerbrücke geöffnet](docs/bilder/p14_kraemer_offen.jpg)
+
+**Krämerbrücke:** Stabgeländer, Fahrdrahtjoche der Straßenbahn über den Klappenpfeilern, große Kandelaber mit zwei Lampenkränzen auf den Ufervorbauten. Die Klappen sind tiefe Gitterträger, die zur Spitze flacher werden.
+
+![Schmiedebrücke mit Ringgirlande](docs/bilder/p14_schmiede.jpg)
+
+**Schmiedebrücke:** schmal, mit Maßwerkgeländer und einer Girlande aus Ringen und Bögen unter der Fahrbahnkante. Laternen stehen auf runden Steinsockeln an den Ufern.
+
+![Holzbrücke mit Portalbögen](docs/bilder/p14_holz.jpg)
+
+**Holzbrücke:** wuchtige Pfeiler mit runden Köpfen, Ringgeländer, Kandelaber und Portalbogen über den Klappenpfeilern, Straßenbahn. (Die Postkarte `Schmiedebrücke1.jpg` trägt die Aufschrift „Holzbrücke und Dom“ und ist hier für die Holzbrücke verwendet.)
+
+**Grüne Brücke:** wie zuvor nach der Postkarte um 1910 gebaut: spitze Eisbrecher, Ziergeländer mit Ringen, auf jedem Klappenpfeiler zwei Kandelaber mit vier Armen und ein schmiedeeiserner Portalbogen mit Strahlenfächer, Voluten und Wappenschild. Dazu Pflaster und zwei Straßenbahngleise in Meterspur.
 
 ![Grüne Brücke: Portalbögen und Kandelaber auf den Klappenpfeilern](docs/bilder/p13_gruene_portal.jpg)
 ![Grüne Brücke vom Wasser aus](docs/bilder/p13_gruene_wasser.jpg)
 ![Grüne Brücke mit geöffneten Klappen](docs/bilder/p13_gruene_offen.jpg)
 
-Die Grüne Brücke ist als einzige der sieben Brücken nach Fotos gebaut (Vorlage: [`GrueneBruecke.jpg`](GrueneBruecke.jpg), Postkarte um 1910, und `GrüneBrücke.webp`). Sie ist eine eiserne Doppelklappbrücke auf gemauerten Strompfeilern mit Eisbrechern statt einer Holzjochbrücke. Auf der Fahrbahn liegen Pflaster und zwei Straßenbahngleise in Meterspur, und das Ziergeländer aus Gusseisen hat Ringe. Auf jedem Klappenpfeiler stehen zwei Kandelaber auf runden Steinsockeln mit vier Armen und Spitzenlaterne. Über die Fahrbahn verbindet sie ein schmiedeeiserner Portalbogen mit Strahlenfächer, Voluten und Wappenschild. Maße und Ornament sind aus den Fotos geschätzt, nicht gemessen.
+![Köttelbrücke mit runden Pfeilerköpfen und Laternensäulen](docs/bilder/p14_koettel.jpg)
+![Köttelbrücke: Auffahrt mit Balustrade](docs/bilder/p14_koettel_auffahrt.jpg)
+
+**Köttelbrücke:** runde Pfeilerköpfe reichen als Türme bis über die Fahrbahn und tragen steinerne Laternensäulen. Das Geländer ist ein Rautengitter, an den Auffahrten stehen steinerne Balustraden.
+
+![Honigbrücke](docs/bilder/p14_honig.jpg)
+
+**Honigbrücke:** schlicht, mit Stabgeländer, Gaslaternen und einem Gleis.
+
+![Hohe Brücke mit Bogenträgern](docs/bilder/p14_hohe.jpg)
+
+**Hohe Brücke:** eiserne Bogenträger über den festen Feldern, Steinpylone mit Kupferdach auf den Klappenpfeilern, Straßenbahn.
+
+Vor den Durchfahrten stehen Dalben aus Pfahlbündeln wie auf den Fotos.
+
+### Auffahrten ohne Stufe
+
+![Auffahrt der Grünen Brücke: fließend ins Pflaster](docs/bilder/p14_gruene_auffahrt.jpg)
+
+Die Auffahrten gehen ohne Stufe in die Straße über. Ihr Längsschnitt folgt einer Kosinuskurve von der Fahrbahn bis zur Geländehöhe am Auffahrtsende, ohne Knick an beiden Enden. Fußgänger gehen auf derselben Kurve. Die Stufe hatte zwei Ursachen. Hinter den Kaimauern sackte das Gelände ab 8 m Abstand vom Wasser in eine Mulde, weil `Site.height` dort von der Kai- auf die Wiesenformel umschaltete. Und die Auffahrt endete auf der Höhe, die 6 m hinter dem Ufer gemessen war, also über dieser Mulde. Jetzt bleibt das Pflaster hinter den Kaimauern eben, und die Auffahrt endet auf der Geländehöhe, die an ihrem Ende tatsächlich gilt.
 
 ## Bedienung
 

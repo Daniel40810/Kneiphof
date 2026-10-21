@@ -34,8 +34,8 @@ public final class People {
         Random rnd = new Random(1910);
         for (int i = 0; i < br.list.size(); i++) {
             Bridges.Bridge b = br.list.get(i);
-            uMin[i] = b.sMin - ramp(b, 0);
-            uMax[i] = b.sMax + ramp(b, 1);
+            uMin[i] = b.sMin - b.ramp[0];
+            uMax[i] = b.sMax + b.ramp[1];
             int n = 14;
             for (int k = 0; k < n; k++) {
                 Person p = new Person(i, rnd.nextInt(VARIANTS));
@@ -51,30 +51,11 @@ public final class People {
         }
     }
 
-    /** Länge der Auffahrt hinter dem Ufer e (0 West/−u, 1 Ost/+u), wie im Bau der Brücke. */
-    private static double ramp(Bridges.Bridge b, int e) {
-        double sShore = e == 0 ? b.sMin : b.sMax;
-        int dir = e == 0 ? -1 : 1;
-        double hLand = Site.height(b.wx(sShore + dir * 6, 0), b.wz(sShore + dir * 6, 0));
-        return Math.max(8, Math.min(40, Math.abs(b.deck - hLand) / 0.07));
-    }
-
-    private double height(Bridges.Bridge b, double u, int i) {
-        if (u >= b.sMin && u <= b.sMax) return b.deck;
-        int e = u < b.sMin ? 0 : 1;
-        double sShore = e == 0 ? b.sMin : b.sMax;
-        int dir = e == 0 ? -1 : 1;
-        double hLand = Site.height(b.wx(sShore + dir * 6, 0), b.wz(sShore + dir * 6, 0));
-        double lr = Math.abs((e == 0 ? uMin[i] : uMax[i]) - sShore);
-        double f = Math.min(1, Math.abs(u - sShore) / Math.max(1, lr));
-        return b.deck + (hLand - b.deck) * f;
-    }
-
     private void place(Person p, double dt) {
         Bridges.Bridge b = br.list.get(p.bridge);
         p.x = b.wx(p.u, p.w);
         p.z = b.wz(p.u, p.w);
-        p.y = height(b, p.u, p.bridge);
+        p.y = b.surface(p.u);
         p.hx = p.dir * b.c;
         p.hz = p.dir * b.s;
     }
