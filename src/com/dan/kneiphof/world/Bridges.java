@@ -290,6 +290,8 @@ public final class Bridges {
         int n = Math.max(8, (int) Math.ceil(lr / 1.5));
         double[] dW = o.dir(0, 1);
         double railEnd = sShore;                                     // Geländer bis hier (Damm noch über 0,35 m)
+        for (int k = 0; k < n; k++)
+            if (b.surface(sShore + dir * lr * k / n) - b.land[e] > 0.35) railEnd = sShore + dir * lr * (k + 1) / n;
         // Pflaster in Feldern von höchstens 1,5 m längs und quer, damit es dem Gelände am Ende folgen kann
         int cols = Math.max(2, (int) Math.ceil(2 * hw / 1.5));
         for (int k = 0; k < n; k++) {
@@ -302,11 +304,13 @@ public final class Bridges {
                         o.p(ua, b.rampSurface(ua, w1), w1), 0, 0, Material.COBBLE, ua * dir, w0, 1, 1, true);
             }
             for (double w : lk.rails) slat(o, ua, b.rampSurface(ua, w) + 0.005, ub, b.rampSurface(ub, w) + 0.005, w, 0.035);
+            boolean walled = dir * (ua - railEnd) < -1e-9;
             for (int sd = -1; sd <= 1; sd += 2) {
                 double ya = b.rampSurface(ua, sd * hw), yc = b.rampSurface(ub, sd * hw);
-                Banks.facing(m, o.p(ua, yb, sd * hw), o.p(ub, yb, sd * hw), o.p(ub, yc, sd * hw), o.p(ua, ya, sd * hw), sd * dW[0], sd * dW[1], Material.QUAY, ua * dir, yb, 0.8, 1);
+                if (walled)
+                    Banks.facing(m, o.p(ua, yb, sd * hw), o.p(ub, yb, sd * hw), o.p(ub, yc, sd * hw), o.p(ua, ya, sd * hw), sd * dW[0], sd * dW[1], Material.QUAY, ua * dir, yb, 0.8, 1);
+                else slope(b, o, ua, ub, sd, hw);
             }
-            if (b.surface(ua) - b.land[e] > 0.35) railEnd = ub;
         }
         // Deckplatte auf den Stützmauern, so weit das Geländer reicht: Granit, folgt dem Damm
         int nc = Math.max(1, (int) Math.ceil(Math.abs(railEnd - sShore) / 1.5));
@@ -389,6 +393,22 @@ public final class Bridges {
             v[k] = new double[]{s[0], plazaHeight(s[0], s[2]), s[2]};
         }
         for (int k = 1; k + 1 < v.length; k++) up(o, v[0], v[k], v[k + 1], Material.COBBLE);
+    }
+
+    /**
+     * Böschung neben der Auffahrt zwischen ua und ub auf der Seite sd, wo kein Geländer mehr steht: Statt einer
+     * niedrigen Stützmauer, die als Naht aus dem Platz ragte, läuft das Pflaster seitlich schräg (1:4) auf die Höhe
+     * des Vorplatzes aus.
+     */
+    private static void slope(Bridge b, Obj o, double ua, double ub, int sd, double hw) {
+        double wi = sd * hw;
+        double da = b.rampSurface(ua, wi) - plazaHeight(o.wx(ua, wi), o.wz(ua, wi)) - LIP;
+        double db = b.rampSurface(ub, wi) - plazaHeight(o.wx(ub, wi), o.wz(ub, wi)) - LIP;
+        if (Math.max(da, db) < 0.005) return;
+        double wo = sd * (hw + Math.max(0.3, 4 * Math.max(da, db)));
+        double[] pa = o.p(ua, b.rampSurface(ua, wi), wi), pb = o.p(ub, b.rampSurface(ub, wi), wi);
+        double[] qa = o.p(ua, plazaHeight(o.wx(ua, wo), o.wz(ua, wo)) + LIP, wo), qb = o.p(ub, plazaHeight(o.wx(ub, wo), o.wz(ub, wo)) + LIP, wo);
+        Banks.facing(o.m, pa, pb, qb, qa, 0, 0, Material.COBBLE, ua, wi, 1, 1, true);
     }
 
     /** Liegt die Auffahrt bei (u, w) auf Höhe des Vorplatzes, der dort auch liegt? */
