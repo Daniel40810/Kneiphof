@@ -112,6 +112,43 @@ public final class TerrainMesh {
         return Math.hypot(k * (a + 3 * (1 - a) * tx * tx), k * (a + 3 * (1 - a) * tz * tz));
     }
 
+    private static double[] grid;
+
+    /**
+     * Höhe des Geländes, wie das Netz mit SIZE Punkten sie zeichnet: Site.height an den Gitterpunkten, dazwischen
+     * linear in denselben zwei Dreiecken je Masche wie im Netz. Sie kann über Site.height liegen; wer etwas
+     * bündig auf das Gelände legen will, braucht diese Höhe.
+     */
+    public static double surfaceHeight(double x, double z) {
+        double[] g = grid;
+        if (g == null) {
+            g = new double[SIZE];
+            for (int i = 0; i < SIZE; i++) g[i] = warp(i / (SIZE - 1.0) * 2 - 1) * Site.EXTENT;
+            grid = g;
+        }
+        if (Math.abs(x) >= Site.EXTENT || Math.abs(z) >= Site.EXTENT) return Site.height(x, z);
+        int i = cell(g, x), j = cell(g, z);
+        double fx = (x - g[i]) / (g[i + 1] - g[i]), fz = (z - g[j]) / (g[j + 1] - g[j]);
+        // Dreiecke wie oben: (a, c, b) und (b, c, d) mit a = (i, j), b = (i+1, j), c = (i, j+1), d = (i+1, j+1)
+        double hb = Site.height(g[i + 1], g[j]), hc = Site.height(g[i], g[j + 1]);
+        if (fx + fz <= 1) {
+            double ha = Site.height(g[i], g[j]);
+            return ha + fx * (hb - ha) + fz * (hc - ha);
+        }
+        double hd = Site.height(g[i + 1], g[j + 1]);
+        return hd + (1 - fx) * (hc - hd) + (1 - fz) * (hb - hd);
+    }
+
+    /** Index der Masche, die v enthält (g aufsteigend). */
+    private static int cell(double[] g, double v) {
+        int lo = 0, hi = g.length - 2;
+        while (lo < hi) {
+            int mid = (lo + hi + 1) >>> 1;
+            if (g[mid] <= v) lo = mid; else hi = mid - 1;
+        }
+        return lo;
+    }
+
     /** Maschenweite in der Mitte in Metern. */
     public double centerSpacing() { return warp(2.0 / (n - 1)) * Site.EXTENT; }
 

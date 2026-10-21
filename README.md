@@ -129,6 +129,10 @@ Vor den Durchfahrten stehen Dalben aus Pfahlbündeln wie auf den Fotos.
 
 Die Auffahrten gehen ohne Stufe in die Straße über. Ihr Längsschnitt folgt einer Kosinuskurve von der Fahrbahn bis zur Geländehöhe am Auffahrtsende, ohne Knick an beiden Enden. Fußgänger gehen auf derselben Kurve. Die Stufe hatte zwei Ursachen. Hinter den Kaimauern sackte das Gelände ab 8 m Abstand vom Wasser in eine Mulde, weil `Site.height` dort von der Kai- auf die Wiesenformel umschaltete. Und die Auffahrt endete auf der Höhe, die 6 m hinter dem Ufer gemessen war, also über dieser Mulde. Jetzt bleibt das Pflaster hinter den Kaimauern eben, und die Auffahrt endet auf der Geländehöhe, die an ihrem Ende tatsächlich gilt.
 
+![Vorplatz der Hohen Brücke: vom Kai zur Wiese](docs/bilder/p14_hohe_vorplatz.jpg)
+
+Vor jeder Auffahrt liegt ein gepflasterter Brückenvorplatz: an der Kaimauer breit, am Ende der Auffahrt schmal. Er fasst Auffahrt und Kaipflaster zu einem Umriss zusammen. Er folgt demselben Profil wie das Kaipflaster, liegt 3 cm darüber und nie unter dem gezeichneten Geländenetz (`TerrainMesh.surfaceHeight`). Das Netz ist grob und liegt zwischen seinen Punkten stellenweise höher als `Site.height`. Die Auffahrt endet quer über ihre ganze Breite auf der Höhe des Platzes; an der Hohen Brücke fällt der Platz dort schräg zur Wiese ab. Das Kaipflaster reicht so weit ins Land, wie die Senke hinter der Mauer im groben Geländenetz reichen kann, damit dahinter keine Löcher klaffen.
+
 ## Bedienung
 
 | Eingabe | Wirkung |

@@ -71,8 +71,8 @@ public final class FrameDump {
         }
         MeshBuilder tb = Testbed.build();
         com.dan.kneiphof.world.Banks banks = new com.dan.kneiphof.world.Banks();
-        tb.append(banks.build());
         com.dan.kneiphof.world.Bridges bridges = new com.dan.kneiphof.world.Bridges();
+        tb.append(banks.build(bridges));
         tb.append(bridges.statics);
         double open = Double.parseDouble(System.getProperty("open", "0"));
         tb.append(bridges.bake(open));
@@ -214,6 +214,7 @@ public final class FrameDump {
                 {"kai_loch_gruene", 172, 15.0, BE(3, 1, 10)[0], BE(3, 1, 10)[1], BE(3, 1, 10)[2], BE(3, 1, 10)[3] - 70.0, 25.0, 30.0},
                 {"kai_loch_hohe", 172, 15.0, BE(6, 0, 8)[0], BE(6, 0, 8)[1], BE(6, 0, 8)[2], BE(6, 0, 8)[3], 35.0, 40.0},
                 {"kai_loch_hohe_b", 172, 15.0, BE(6, 1, 8)[0], BE(6, 1, 8)[1], BE(6, 1, 8)[2], BE(6, 1, 8)[3], 35.0, 40.0},
+                {"kai_loch_hohe_c", 172, 15.0, BE(6, 1, 6)[0], BE(6, 1, 6)[1], BE(6, 1, 6)[2], BE(6, 1, 6)[3] + 40.0, 14.0, 24.0},
                 {"br_koettel", 172, 15.0, BR(4)[0], BR(4)[1], BR(4)[2], BR(4)[3], 14.0, 70.0},
                 {"br_honig", 172, 15.0, BR(5)[0], BR(5)[1], BR(5)[2], BR(5)[3], 14.0, 55.0},
                 {"br_hohe", 172, 15.0, BR(6)[0], BR(6)[1], BR(6)[2], BR(6)[3], 14.0, 80.0},

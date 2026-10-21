@@ -127,10 +127,10 @@ public final class Renderer implements GLEventListener {
             vorabSchritt = 0;
             vorabText = "Ufer und Kaimauern";
             banks = new Banks();
-            banksMesh = banks.build();
+            bridges = new Bridges();
+            banksMesh = banks.build(bridges);
             vorabSchritt = 1;
             vorabText = "Brücken, Schiffe und Fußgänger";
-            bridges = new Bridges();
             boats.attach(bridges);
             people = new People(bridges);
             vorabSchritt = 2;

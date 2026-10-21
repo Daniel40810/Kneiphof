@@ -160,7 +160,10 @@ public final class Banks {
     // ------------------------------------------------------------------ Netz
 
     /** Baut Kaimauern, Decksteine, Kaipflaster, Poller, Laternen und Dalben. */
-    public MeshBuilder build() {
+    public MeshBuilder build() { return build(null); }
+
+    /** Wie {@link #build()}; wo die Brückenvorplätze das Kaipflaster ganz überdecken, entfällt es. */
+    public MeshBuilder build(Bridges bridges) {
         MeshBuilder m = new MeshBuilder();
         lanterns.clear();
         for (Line L : lines) {
@@ -193,7 +196,8 @@ public final class Banks {
                 double[] pa = {x0 + nx0 * dep, h0 + 0.02, z0 + nz0 * dep}, pb = {x1 + nx1 * dep, h1 + 0.02, z1 + nz1 * dep};
                 double[] qa = {x0 + nx0 * far0, Site.height(x0 + nx0 * far0, z0 + nz0 * far0) + 0.03, z0 + nz0 * far0};
                 double[] qb = {x1 + nx1 * far1, Site.height(x1 + nx1 * far1, z1 + nz1 * far1) + 0.03, z1 + nz1 * far1};
-                facing(m, pa, pb, qb, qa, 0, 0, Material.COBBLE, 0, 0, 0.9, 1, true);
+                if (bridges == null || !underPlaza(bridges, pa, pb, qb, qa))
+                    facing(m, pa, pb, qb, qa, 0, 0, Material.COBBLE, 0, 0, 0.9, 1, true);
 
                 // Ausstattung
                 double mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, mnx = (nx0 + nx1) / 2, mnz = (nz0 + nz1) / 2;
@@ -219,6 +223,16 @@ public final class Banks {
             }
         }
         return m;
+    }
+
+    /** Liegen alle Ecken auf demselben Brückenvorplatz? */
+    private static boolean underPlaza(Bridges bridges, double[]... corners) {
+        for (Bridges.Bridge b : bridges.list) {
+            boolean all = true;
+            for (double[] c : corners) if (!b.onPlaza(c[0], c[2])) { all = false; break; }
+            if (all) return true;
+        }
+        return false;
     }
 
     /** Gaslaterne: Sockel, Mast, Laternenkopf mit Glas (leuchtet nachts), kleine Haube. */
