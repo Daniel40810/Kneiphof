@@ -115,31 +115,44 @@ public final class Site {
      * die Ufer als Wiese flach ins Wasser.
      */
     public static boolean isQuay(double x, double z) {
-        if (onKneiphof(x, z)) return true;
-        if (onLomse(x, z)) return x < 950;
-        if (Math.abs(x) > 1700) return false;
+        return quayShare(x, z) > 0.5;
+    }
+
+    /** So breit liegt der Boden hinter einer Kaimauer tiefer als das Kaipflaster (Meter ab der Mauer). */
+    public static final double QUAY_SINK = 4.2;
+
+    /**
+     * Wie sehr ist hier Kai (1) statt Wiesenufer (0)? Dieselbe Regel wie {@link #isQuay}, aber mit weichem Übergang
+     * (isQuay ist genau dann wahr, wenn dieser Wert über 0,5 liegt). An Ufern, deren Bodenart nahe der Schwelle liegt,
+     * springt isQuay von Punkt zu Punkt; das Gelände darf dort nicht mitspringen.
+     */
+    public static double quayShare(double x, double z) {
+        if (onKneiphof(x, z)) return 1;
+        if (onLomse(x, z)) return smooth(960, 940, x);
+        if (Math.abs(x) > 1700) return 0;
         float[] c = new float[4];
         cover(x, z, c);
-        return c[0] > 0.45f;
+        return smooth(0.35, 0.55, c[0]);
     }
 
     /** Geländehöhe über dem Wasserspiegel. */
     public static double height(double x, double z) {
         double w = Math.min(water(x, z), haff(x, z));
-        // Hinter der Kaimauer bleibt das Pflaster eben bis dorthin, wo auch das Wiesenufer die Landhöhe erreicht
-        // (30 m); sonst sackte es ab 8 m in eine Mulde, in der die Brückenauffahrten mit einer Stufe endeten.
-        boolean quay = w > -8 && w < 30 && isQuay(x, z);
+        // Kai und Wiesenufer stetig nach dem Kai-Anteil gemischt. Hinter der Kaimauer bleibt das Pflaster eben bis
+        // dorthin, wo auch das Wiesenufer die Landhöhe erreicht (30 m); sonst sackte es ab 8 m in eine Mulde, in der
+        // die Brückenauffahrten mit einer Stufe endeten.
+        double q = w > -8 && w < 30 ? quayShare(x, z) : 0;
         if (w < 0) {
             // Flussbett: an der Kaimauer sofort 2 m tief, am flachen Ufer langsam; in der Mitte bis 6 m
-            return quay ? -2.0 - Math.min(4.0, -w * 0.2) : -0.3 - Math.min(5.7, -w * 0.18);
+            double quayBed = -2.0 - Math.min(4.0, -w * 0.2), meadowBed = -0.3 - Math.min(5.7, -w * 0.18);
+            return meadowBed + (quayBed - meadowBed) * q;
         }
         double land = base(x, z);
-        if (quay) {
-            // Hinter der Kaimauer liegt der Boden unter dem Kaipflaster; erst ab 4 m frei
-            return -2.0 + (land + 2.0) * smooth(0.4, 4.2, w);
-        }
+        // Hinter der Kaimauer liegt der Boden unter dem Kaipflaster; erst ab 4 m frei
+        double quay = -2.0 + (land + 2.0) * smooth(0.4, QUAY_SINK, w);
         // Wiesenufer: auf den ersten 10 m flach ansteigend, am Wasser etwas tiefer
-        return -0.3 + (land + 0.3) * smooth(0, 10, w) * (0.75 + 0.25 * smooth(10, 30, w));
+        double meadow = -0.3 + (land + 0.3) * smooth(0, 10, w) * (0.75 + 0.25 * smooth(10, 30, w));
+        return meadow + (quay - meadow) * q;
     }
 
     /** Landhöhe ohne Ufer (Höhe der Kaikante, des Pflasters, der Wiese). */

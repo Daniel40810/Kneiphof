@@ -27,7 +27,8 @@ import java.util.List;
  *     Straßenbahn.</li>
  * </ul>
  * <p>Die Auffahrten gehen ohne Stufe in die Straße über: Ihr Längsschnitt folgt einer Kosinuskurve von der
- * Fahrbahn bis zur Geländehöhe am Ende, beide Enden also ohne Knick.</p>
+ * Fahrbahn bis zur Geländehöhe am Ende, beide Enden also ohne Knick. Vor jeder Auffahrt liegt ein gepflasterter
+ * Vorplatz, der Auffahrt und Kaipflaster zu einem Umriss zusammenfasst.</p>
  */
 public final class Bridges {
     /** Länge einer Klappe, Lücke dazwischen, Schwanzlänge hinter dem Drehpunkt. */
@@ -61,6 +62,8 @@ public final class Bridges {
         public double cx, cz, angle, c, s, sMin, sMax, width, deck;
         /** Länge der Auffahrt hinter dem Ufer e (0: −u, 1: +u) und Geländehöhe an ihrem Ende. */
         public final double[] ramp = new double[2], land = new double[2];
+        /** Höhe am Ende der Auffahrt quer über die Fahrbahn, in END Stücken von −width/2 bis +width/2. */
+        final double[][] landAcross = new double[2][END + 1];
         public final MeshBuilder leaf = new MeshBuilder();
         /** Drehpunkte der beiden Klappen (x, y, z) und Drehung um die Hochachse. */
         public final double[][] pivot = new double[2][3];
@@ -76,6 +79,39 @@ public final class Bridges {
             double f = Math.min(1, Math.abs(u - (e == 0 ? sMin : sMax)) / ramp[e]);
             return deck + (land[e] - deck) * (0.5 - 0.5 * Math.cos(Math.PI * f));
         }
+
+        /**
+         * Höhe des Pflasters der Auffahrt bei (u, w): die Kurve, aber nie unter dem gezeichneten Gelände. Das Netz
+         * des Geländes ist grob und liegt zwischen seinen Punkten stellenweise höher als Site.height; ohne diese
+         * Grenze schnitte es das Pflaster am Ende der Auffahrt zackig ab.
+         */
+        public double rampSurface(double u, double w) {
+            if (u >= sMin && u <= sMax) return deck;
+            int e = u < sMin ? 0 : 1;
+            double f = Math.min(1, Math.abs(u - (e == 0 ? sMin : sMax)) / ramp[e]);
+            // Endhöhe an dieser Stelle quer zur Fahrbahn: der Platz fällt dort oft schräg ab
+            double k = Math.max(0, Math.min(END, (w / width + 0.5) * END));
+            int i = Math.min(END - 1, (int) k);
+            double end = landAcross[e][i] + (landAcross[e][i + 1] - landAcross[e][i]) * (k - i);
+            double y = deck + (end - deck) * (0.5 - 0.5 * Math.cos(Math.PI * f));
+            return Math.max(y, plazaHeight(wx(u, w), wz(u, w)) + LIP);
+        }
+
+        /** Liegt (x, z) auf einem der beiden Brückenvorplätze? */
+        public boolean onPlaza(double x, double z) {
+            double u = (x - cx) * c + (z - cz) * s, w = -(x - cx) * s + (z - cz) * c;
+            for (int e = 0; e < 2; e++) {
+                double sShore = e == 0 ? sMin : sMax, t = (e == 0 ? -1 : 1) * (u - sShore);
+                if (t >= PLAZA_IN && t <= ramp[e] + PLAZA_OUT && Math.abs(w) <= plazaHalf(e, t) && plazaField(x, z) > 0.05) return true;
+            }
+            return false;
+        }
+
+        /** Halbe Breite des Vorplatzes am Ufer e im Abstand t vom Ufer: breit an der Mauer, schmal am Ende. */
+        double plazaHalf(int e, double t) {
+            double f = Math.max(0, Math.min(1, (t - PLAZA_IN) / (ramp[e] + PLAZA_OUT - PLAZA_IN)));
+            return width / 2 + 5.0 - 3.5 * f;
+        }
     }
 
     private static final String[] NAMES = {"Krämerbrücke", "Schmiedebrücke", "Holzbrücke", "Grüne Brücke", "Köttelbrücke", "Honigbrücke", "Hohe Brücke"};
@@ -85,8 +121,51 @@ public final class Bridges {
     private static final double[] TWO_TRACKS = {-2.05, -1.05, 1.05, 2.05}, ONE_TRACK = {-0.5, 0.5}, NO_TRACK = {};
     /** Länge des Klappenpfeilers vom Drehpunkt landwärts. */
     private static final double PIER = 4.6;
-    /** Die Auffahrt endet so viel über dem Gelände, damit sich die Flächen nicht durchdringen. */
+    /** Die Auffahrt endet so viel über dem Vorplatz, damit sich die Flächen nicht durchdringen. */
     private static final double LIP = 0.02;
+    /** Stücke quer über das Ende der Auffahrt. */
+    private static final int END = 8;
+    /** Vorplatz: beginnt so weit hinter der Uferlinie und reicht so weit über das Ende der Auffahrt hinaus. */
+    private static final double PLAZA_IN = 0.7, PLAZA_OUT = 2.5;
+
+    /**
+     * Wie sehr ist das Ufer nahe (x, z) Kaimauer (1) oder Wiesenufer (0)? Nach den Uferzügen von {@link Banks},
+     * denn nur dort steht wirklich eine Mauer, und stetig in der Lage statt Site.isQuay, das an der Grenze von
+     * Punkt zu Punkt springt.
+     */
+    static double quayWeight(double x, double z) {
+        return Banks.shared().quayShare(x, z, Math.max(0, Site.water(x, z)) + 6.0);
+    }
+
+    /**
+     * Rand des Vorplatzes zum Wasser als stetiges Feld (positiv: Platz). Am Kai liegt der Rand an der Innenkante des
+     * Decksteins, am Wiesenufer 4 m weiter landwärts; dazwischen gleitend, damit der Rand nirgends springt.
+     */
+    static double plazaField(double x, double z) {
+        return Site.water(x, z) - Banks.COPING - (1 - quayWeight(x, z)) * 4.0;
+    }
+
+    /**
+     * Höhe des Pflasters auf einem Brückenvorplatz, 3 cm über dem Kaipflaster und nie unter dem gezeichneten Gelände.
+     * Am Kai folgt der Platz demselben Profil wie das Kaipflaster in {@link Banks}: linear von der Kaikante
+     * (Landhöhe) bis zur Außenkante, wo es auf dem Gelände aufliegt. Am Wiesenufer liegt er auf dem Gelände;
+     * dazwischen nach {@link #quayWeight} gemischt. Folgte der Platz am Kai einer anderen Kurve, stäche das
+     * Kaipflaster in Zacken durch ihn; läge er am Wiesenufer auf Kaihöhe, schwebte er über der Böschung.
+     */
+    static double plazaHeight(double x, double z) {
+        double wd = Site.water(x, z), far = Site.QUAY_SINK + TerrainMesh.cellDiagonal(x, z) + 0.6;
+        double mesh = TerrainMesh.surfaceHeight(x, z) + 0.03, ground = Math.max(Site.height(x, z) + 0.03, mesh), y = ground;
+        if (wd < far) {
+            // Außenkante des Kaipflasters: vom Punkt in Richtung des wachsenden Uferabstands bis zum Abstand far
+            double gx = Site.water(x + 0.5, z) - Site.water(x - 0.5, z), gz = Site.water(x, z + 0.5) - Site.water(x, z - 0.5);
+            double gl = Math.max(1e-6, Math.hypot(gx, gz)), d = far - wd;
+            double outer = Site.height(x + gx / gl * d, z + gz / gl * d) + 0.03, inner = Site.land(x, z) + 0.07;
+            double t = Math.max(0, Math.min(1, (wd - Banks.COPING) / (far - Banks.COPING)));
+            double kai = inner + (outer - inner) * t;
+            y = ground + (kai - ground) * quayWeight(x, z);
+        }
+        return Math.max(y, mesh) + 0.03;
+    }
 
     private static Look look(int i) {
         switch (i) {
@@ -147,10 +226,14 @@ public final class Bridges {
             double h = e == 0 ? hA : hB, lr = 10;
             for (int k = 0; k < 3; k++) {
                 lr = Math.max(10, Math.min(40, Math.abs(b.deck - h) / 0.05));
-                h = Site.height(b.wx(sShore + dir * lr, 0), b.wz(sShore + dir * lr, 0));
+                h = plazaHeight(b.wx(sShore + dir * lr, 0), b.wz(sShore + dir * lr, 0));
             }
             b.ramp[e] = lr;
-            b.land[e] = h + LIP;
+            for (int k = 0; k <= END; k++) {
+                double w = -width / 2 + width * k / END;
+                b.landAcross[e][k] = plazaHeight(b.wx(sShore + dir * lr, w), b.wz(sShore + dir * lr, w)) + LIP;
+            }
+            b.land[e] = b.landAcross[e][END / 2];
         }
         return b;
     }
@@ -201,18 +284,33 @@ public final class Bridges {
         Look lk = b.look;
         double sShore = e == 0 ? b.sMin : b.sMax, lr = b.ramp[e];
         int dir = e == 0 ? -1 : 1;                                   // vom Wasser weg
-        double yb = Math.min(b.land[e], y) - 1.4;
+        double yb = y;
+        for (double h : b.landAcross[e]) yb = Math.min(yb, h);
+        yb -= 1.6;
         int n = Math.max(8, (int) Math.ceil(lr / 1.5));
         double[] dW = o.dir(0, 1);
         double railEnd = sShore;                                     // Geländer bis hier (Damm noch über 0,35 m)
+        for (int k = 0; k < n; k++)
+            if (b.surface(sShore + dir * lr * k / n) - b.land[e] > 0.35) railEnd = sShore + dir * lr * (k + 1) / n;
+        // Pflaster in Feldern von höchstens 1,5 m längs und quer, damit es dem Gelände am Ende folgen kann
+        int cols = Math.max(2, (int) Math.ceil(2 * hw / 1.5));
         for (int k = 0; k < n; k++) {
             double ua = sShore + dir * lr * k / n, ub = sShore + dir * lr * (k + 1) / n;
-            double ya = b.surface(ua), yc = b.surface(ub);
-            Banks.facing(m, o.p(ua, ya, -hw), o.p(ub, yc, -hw), o.p(ub, yc, hw), o.p(ua, ya, hw), 0, 0, Material.COBBLE, ua * dir, -hw, 1, 1, true);
-            for (double w : lk.rails) slat(o, ua, ya + 0.005, ub, yc + 0.005, w, 0.035);
-            for (int sd = -1; sd <= 1; sd += 2)
-                Banks.facing(m, o.p(ua, yb, sd * hw), o.p(ub, yb, sd * hw), o.p(ub, yc, sd * hw), o.p(ua, ya, sd * hw), sd * dW[0], sd * dW[1], Material.QUAY, ua * dir, yb, 0.8, 1);
-            if (ya - b.land[e] > 0.35) railEnd = ub;
+            for (int q = 0; q < cols; q++) {
+                double w0 = -hw + 2 * hw * q / cols, w1 = -hw + 2 * hw * (q + 1) / cols;
+                // Liegt die Auffahrt hier schon auf dem Vorplatz, trägt der Platz das Pflaster (keine Doppelfläche)
+                if (onPlazaLevel(b, ua, w0) && onPlazaLevel(b, ub, w0) && onPlazaLevel(b, ua, w1) && onPlazaLevel(b, ub, w1)) continue;
+                Banks.facing(m, o.p(ua, b.rampSurface(ua, w0), w0), o.p(ub, b.rampSurface(ub, w0), w0), o.p(ub, b.rampSurface(ub, w1), w1),
+                        o.p(ua, b.rampSurface(ua, w1), w1), 0, 0, Material.COBBLE, ua * dir, w0, 1, 1, true);
+            }
+            for (double w : lk.rails) slat(o, ua, b.rampSurface(ua, w) + 0.005, ub, b.rampSurface(ub, w) + 0.005, w, 0.035);
+            boolean walled = dir * (ua - railEnd) < -1e-9;
+            for (int sd = -1; sd <= 1; sd += 2) {
+                double ya = b.rampSurface(ua, sd * hw), yc = b.rampSurface(ub, sd * hw);
+                if (walled)
+                    Banks.facing(m, o.p(ua, yb, sd * hw), o.p(ub, yb, sd * hw), o.p(ub, yc, sd * hw), o.p(ua, ya, sd * hw), sd * dW[0], sd * dW[1], Material.QUAY, ua * dir, yb, 0.8, 1);
+                else slope(b, o, ua, ub, sd, hw);
+            }
         }
         // Deckplatte auf den Stützmauern, so weit das Geländer reicht: Granit, folgt dem Damm
         int nc = Math.max(1, (int) Math.ceil(Math.abs(railEnd - sShore) / 1.5));
@@ -221,6 +319,7 @@ public final class Bridges {
                 double ua = sShore + (railEnd - sShore) * k / nc, ub = sShore + (railEnd - sShore) * (k + 1) / nc;
                 slatM(o, ua, b.surface(ua) - 0.06, ub, b.surface(ub) - 0.06, sd * (hw + 0.02), 0.09, Material.GRANITE);
             }
+        plaza(b, o, e);
         // Widerlager im Wasser: Granit vom Grund bis unter die Fahrbahn
         double wa = dir < 0 ? sShore - 0.2 : sShore - 0.9, wb = dir < 0 ? sShore + 0.9 : sShore + 0.2;
         o.box(wa, -hw - 0.5, wb, hw + 0.5, -2.8, y - 0.36, Material.QUAY, 0.8);
@@ -248,6 +347,74 @@ public final class Bridges {
         }
         // Wärterhäuschen auf der Seite des Ufers mit dem ersten Wasserlauf
         if (e == 0) keeperHouse(b, o, sShore - lr - 3.0, hw + 3.2);
+    }
+
+    /**
+     * Brückenvorplatz am Ufer e: ein Trapez aus Pflaster vor der Auffahrt, an der Kaimauer breit und am Ende der
+     * Auffahrt schmal, in Feldern von etwa 1 m auf das Gelände gelegt. Er fasst Auffahrt und Kaipflaster zu einem
+     * Umriss zusammen; über dem Wasser bleibt er aus.
+     */
+    private void plaza(Bridge b, Obj o, int e) {
+        double sShore = e == 0 ? b.sMin : b.sMax, t0 = 0.2, len = b.ramp[e] + PLAZA_OUT - t0;
+        int dir = e == 0 ? -1 : 1;
+        int nu = (int) Math.ceil(len), nw = (int) Math.ceil(2 * b.plazaHalf(e, t0));
+        double[][][] p = new double[nu + 1][nw + 1][];
+        for (int i = 0; i <= nu; i++) {
+            double t = t0 + len * i / nu, u = sShore + dir * t, half = b.plazaHalf(e, t);
+            for (int j = 0; j <= nw; j++) {
+                double w = -half + 2 * half * j / nw, x = o.wx(u, w), z = o.wz(u, w);
+                p[i][j] = new double[]{x, 0, z, plazaField(x, z)};
+            }
+        }
+        for (int i = 0; i < nu; i++)
+            for (int j = 0; j < nw; j++) plazaCell(o, new double[][]{p[i][j], p[i + 1][j], p[i + 1][j + 1], p[i][j + 1]});
+    }
+
+    /**
+     * Ein Feld des Vorplatzes, abgeschnitten am Rand zum Wasser ({@link #plazaField} = 0; am Kai die Innenkante des
+     * Decksteins, dessen höhere Innenseite den Rand verdeckt): Die Schnittpunkte liegen linear interpoliert auf den
+     * Feldkanten, so folgt der Rand glatt dem Ufer statt in Stufen von Feld zu Feld. Jede Ecke trägt
+     * (x, –, z, Feldwert).
+     */
+    private static void plazaCell(Obj o, double[][] q) {
+        List<double[]> poly = new ArrayList<>();
+        for (int k = 0; k < q.length; k++) {
+            double[] a = q[k], c = q[(k + 1) % q.length];
+            if (a[3] >= 0) poly.add(a);
+            if ((a[3] >= 0) != (c[3] >= 0)) {
+                double f = a[3] / (a[3] - c[3]);
+                poly.add(new double[]{a[0] + (c[0] - a[0]) * f, 0, a[2] + (c[2] - a[2]) * f, 0});
+            }
+        }
+        if (poly.size() < 3) return;
+        double[][] v = new double[poly.size()][];
+        for (int k = 0; k < v.length; k++) {
+            double[] s = poly.get(k);
+            v[k] = new double[]{s[0], plazaHeight(s[0], s[2]), s[2]};
+        }
+        for (int k = 1; k + 1 < v.length; k++) up(o, v[0], v[k], v[k + 1], Material.COBBLE);
+    }
+
+    /**
+     * Böschung neben der Auffahrt zwischen ua und ub auf der Seite sd, wo kein Geländer mehr steht: Statt einer
+     * niedrigen Stützmauer, die als Naht aus dem Platz ragte, läuft das Pflaster seitlich schräg (1:4) auf die Höhe
+     * des Vorplatzes aus.
+     */
+    private static void slope(Bridge b, Obj o, double ua, double ub, int sd, double hw) {
+        double wi = sd * hw;
+        double da = b.rampSurface(ua, wi) - plazaHeight(o.wx(ua, wi), o.wz(ua, wi)) - LIP;
+        double db = b.rampSurface(ub, wi) - plazaHeight(o.wx(ub, wi), o.wz(ub, wi)) - LIP;
+        if (Math.max(da, db) < 0.005) return;
+        double wo = sd * (hw + Math.max(0.3, 4 * Math.max(da, db)));
+        double[] pa = o.p(ua, b.rampSurface(ua, wi), wi), pb = o.p(ub, b.rampSurface(ub, wi), wi);
+        double[] qa = o.p(ua, plazaHeight(o.wx(ua, wo), o.wz(ua, wo)) + LIP, wo), qb = o.p(ub, plazaHeight(o.wx(ub, wo), o.wz(ub, wo)) + LIP, wo);
+        Banks.facing(o.m, pa, pb, qb, qa, 0, 0, Material.COBBLE, ua, wi, 1, 1, true);
+    }
+
+    /** Liegt die Auffahrt bei (u, w) auf Höhe des Vorplatzes, der dort auch liegt? */
+    private static boolean onPlazaLevel(Bridge b, double u, double w) {
+        double x = b.wx(u, w), z = b.wz(u, w);
+        return b.onPlaza(x, z) && b.rampSurface(u, w) <= plazaHeight(x, z) + LIP + 1e-6;
     }
 
     /** Geländer auf der Auffahrt in der Art der Brücke, Feld für Feld der Kurve folgend. */
