@@ -163,7 +163,7 @@ public final class Renderer implements GLEventListener {
     /** Startet den Aufbau von Gelände, Prüfstand und Stadt im Hintergrund, noch vor dem Fenster (vom Startbild gezeigt). */
     public static synchronized void vorab() {
         if (preWorld != null) return;
-        preTerrain = CompletableFuture.supplyAsync(() -> { TerrainMesh t = new TerrainMesh(640); vorabGelaende = true; return t; });
+        preTerrain = CompletableFuture.supplyAsync(() -> { TerrainMesh t = new TerrainMesh(TerrainMesh.SIZE); vorabGelaende = true; return t; });
         preTestbed = CompletableFuture.supplyAsync(() -> { MeshBuilder m = Testbed.build(); vorabPruefstand = true; return m; });
         preWorld = CompletableFuture.supplyAsync(World::new);
     }

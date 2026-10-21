@@ -123,6 +123,9 @@ public final class Site {
         return c[0] > 0.45f;
     }
 
+    /** So breit liegt der Boden hinter einer Kaimauer tiefer als das Kaipflaster (Meter ab der Mauer). */
+    public static final double QUAY_SINK = 4.2;
+
     /** Geländehöhe über dem Wasserspiegel. */
     public static double height(double x, double z) {
         double w = Math.min(water(x, z), haff(x, z));
@@ -136,7 +139,7 @@ public final class Site {
         double land = base(x, z);
         if (quay) {
             // Hinter der Kaimauer liegt der Boden unter dem Kaipflaster; erst ab 4 m frei
-            return -2.0 + (land + 2.0) * smooth(0.4, 4.2, w);
+            return -2.0 + (land + 2.0) * smooth(0.4, QUAY_SINK, w);
         }
         // Wiesenufer: auf den ersten 10 m flach ansteigend, am Wasser etwas tiefer
         return -0.3 + (land + 0.3) * smooth(0, 10, w) * (0.75 + 0.25 * smooth(10, 30, w));

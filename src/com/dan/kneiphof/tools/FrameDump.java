@@ -56,7 +56,7 @@ public final class FrameDump {
     public static void main(String[] args) throws IOException {
         String dir = args.length > 0 ? args[0] : ".";
         long t0 = System.nanoTime();
-        TerrainMesh tm = new TerrainMesh(640);
+        TerrainMesh tm = new TerrainMesh(TerrainMesh.SIZE);
         System.out.printf(Locale.ROOT, "Gelände %d×%d, Mitte %.2f m, %.1f s%n", tm.n, tm.n, tm.centerSpacing(), (System.nanoTime() - t0) / 1e9);
         try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dir + "/terrain.bin")))) {
             ByteBuffer bb = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
@@ -211,6 +211,9 @@ public final class FrameDump {
                 {"br_kraemer_offen", 172, 14.0, BR(0)[0], BR(0)[1] + 3.0, BR(0)[2], BR(0)[3] + 70.0, 6.0, 40.0},
                 {"br_koettel_auffahrt", 172, 15.0, BE(4, 1, 4)[0], BE(4, 1, 4)[1], BE(4, 1, 4)[2], BE(4, 1, 4)[3] - 30.0, 8.0, 26.0},
                 {"br_schmiede_auffahrt", 172, 15.0, BE(1, 0, 4)[0], BE(1, 0, 4)[1], BE(1, 0, 4)[2], BE(1, 0, 4)[3] + 30.0, 8.0, 24.0},
+                {"kai_loch_gruene", 172, 15.0, BE(3, 1, 10)[0], BE(3, 1, 10)[1], BE(3, 1, 10)[2], BE(3, 1, 10)[3] - 70.0, 25.0, 30.0},
+                {"kai_loch_hohe", 172, 15.0, BE(6, 0, 8)[0], BE(6, 0, 8)[1], BE(6, 0, 8)[2], BE(6, 0, 8)[3], 35.0, 40.0},
+                {"kai_loch_hohe_b", 172, 15.0, BE(6, 1, 8)[0], BE(6, 1, 8)[1], BE(6, 1, 8)[2], BE(6, 1, 8)[3], 35.0, 40.0},
                 {"br_koettel", 172, 15.0, BR(4)[0], BR(4)[1], BR(4)[2], BR(4)[3], 14.0, 70.0},
                 {"br_honig", 172, 15.0, BR(5)[0], BR(5)[1], BR(5)[2], BR(5)[3], 14.0, 55.0},
                 {"br_hohe", 172, 15.0, BR(6)[0], BR(6)[1], BR(6)[2], BR(6)[3], 14.0, 80.0},

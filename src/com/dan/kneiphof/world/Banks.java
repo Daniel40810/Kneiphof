@@ -31,6 +31,7 @@ public final class Banks {
     public static final double X0 = -1750, X1 = 1750, Z0 = -950, Z1 = 950, CELL = 1.5;
     /** Unterkante der Mauer (unter dem Flussbett an der Mauer). */
     static final double WALL_FOOT = -2.6;
+    private static final double SINK = Site.QUAY_SINK;
 
     public final List<Line> lines = new ArrayList<>();
     /** Punkte für Bäume, Laternen usw. auf dem Kai: x, z, Richtung zum Land nx, nz. */
@@ -185,11 +186,13 @@ public final class Banks {
                 facing(m, cat, cbt, ib, ia, 0, 0, Material.GRANITE, s0, 0, 1, 1, true);
                 facing(m, ca, cb, new double[]{x1, h1, z1}, new double[]{x0, h0, z0}, 0, 0, Material.GRANITE, s0, 0, 1, 1, false);
                 facing(m, ib0, ia0, ia, ib, nx0, nz0, Material.GRANITE, s0, h0, 1, 1);
-                // Kaipflaster bis 5 m hinter der Mauer
-                double far = 5.2;
+                // Kaipflaster hinter der Mauer: Hinter der Mauer fällt das Gelände auf 4,2 m Breite ab (Site.height),
+                // die groben Dreiecke des Geländes ziehen die Senke aber noch eine Maschendiagonale weiter ins Land.
+                // So breit muss das Pflaster sein, sonst klaffen dahinter Löcher. Außen liegt es auf dem Gelände auf.
+                double far0 = SINK + TerrainMesh.cellDiagonal(x0, z0) + 0.6, far1 = SINK + TerrainMesh.cellDiagonal(x1, z1) + 0.6;
                 double[] pa = {x0 + nx0 * dep, h0 + 0.02, z0 + nz0 * dep}, pb = {x1 + nx1 * dep, h1 + 0.02, z1 + nz1 * dep};
-                double[] qa = {x0 + nx0 * far, Math.max(h0 + 0.02, Site.height(x0 + nx0 * far, z0 + nz0 * far) + 0.03), z0 + nz0 * far};
-                double[] qb = {x1 + nx1 * far, Math.max(h1 + 0.02, Site.height(x1 + nx1 * far, z1 + nz1 * far) + 0.03), z1 + nz1 * far};
+                double[] qa = {x0 + nx0 * far0, Site.height(x0 + nx0 * far0, z0 + nz0 * far0) + 0.03, z0 + nz0 * far0};
+                double[] qb = {x1 + nx1 * far1, Site.height(x1 + nx1 * far1, z1 + nz1 * far1) + 0.03, z1 + nz1 * far1};
                 facing(m, pa, pb, qb, qa, 0, 0, Material.COBBLE, 0, 0, 0.9, 1, true);
 
                 // Ausstattung
